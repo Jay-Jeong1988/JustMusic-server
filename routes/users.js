@@ -1,8 +1,6 @@
 var express = require('express');
 var router = express.Router();
 var User = require("../db/models/account/User");
-var ContactInfo = require("../db/models/account/ContactInfo");
-var Profile = require("../db/models/account/Profile");
 
 router.get('/', function(req, res, next) {
   User.find(function (err, users) {
@@ -32,11 +30,41 @@ router.post('/login', function(req, res) {
 })
 
 router.post('/signup', (req, res) => {
-  const phoneNumber = req.body.phoneNumber;
+  const phoneNumber = req.body.phoneNumber.slice(1).replace(/\s/g, '');
   const email = req.body.email;
   const accountId = req.body.accountId;
   const password = req.body.password;
   const passwordConfirmation = req.body.passwordConfirmation;
+  const nickname = req.body.nickname || "user" + phoneNumber;
+  const newUser = new User({ 
+    nickname: nickname,
+    contactInfo: {phoneNumber: phoneNumber},
+    profile: {}
+  });
+
+  User.findOne({"contactInfo.phoneNumber": phoneNumber}, (err, user) => {
+    if (err) return console.error(err);
+    if (user == null) {
+      newUser.save().then( newUser => {
+        console.log("successfully created user: \n" + newUser);
+        res.status(200).json({
+          msg: "successfully created a new user: " + newUser.nickname,
+          user: newUser
+        })
+      }).catch(error => {
+        console.log(error.message);
+          res.status(500).json({
+            error: error.message
+          })
+      })
+    }else{
+      res.status(200).json({
+        msg: "Existing user sent to client",
+        user: user
+      })
+    }
+  })
+})
   // if(password === passwordConfirmation) {
     
   //   user.save().then( user => {
@@ -56,7 +84,7 @@ router.post('/signup', (req, res) => {
   //     msg: "passwords do not match"
   //   })
   // }
-});
+// });
 
 // router.get('/:email', (req, res) => {
 //   User.findOne({email: req.params.email}, (err, user) => {

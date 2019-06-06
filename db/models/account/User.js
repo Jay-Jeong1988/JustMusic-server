@@ -1,11 +1,24 @@
 let mongoose = require('mongoose');
 
+let contactInfoSchema = new mongoose.Schema({
+    email: {type: String},
+    phoneNumber: {type: String, unique: true},
+    createdAt: {type: Date, default: Date.now},
+})
+
+let profileSchema = new mongoose.Schema({
+    firstName: {type: String},
+    lastName: {type: String},
+    birthDay: {type: Date},
+    createdAt: {type: Date, default: Date.now},
+})
+
 let userSchema = new mongoose.Schema({
-    accountId: {type: String, required: true, unique: true},
-    password: {type: String, required: true},
-    nickname: {type: String, required: true},
-    profile_id: {type: String},
-    contactInfo_id: {type: String, required: true},
+    accountId: {type: String},
+    password: {type: String},
+    nickname: {type: String},
+    contactInfo: contactInfoSchema,
+    profile: profileSchema,
     createdAt: {type: Date, default: Date.now},
 })
 
