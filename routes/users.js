@@ -42,6 +42,10 @@ router.post('/signup', (req, res) => {
     profile: {}
   });
 
+  router.get('/testing', function(req, res, next) {
+    res.status(200).json({hi: "hello"});
+    });
+
   User.findOne({"contactInfo.phoneNumber": phoneNumber}, (err, user) => {
     if (err) return console.error(err);
     if (user == null) {
