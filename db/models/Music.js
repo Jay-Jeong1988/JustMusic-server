@@ -2,7 +2,7 @@ let mongoose = require("mongoose");
 
 let categorySchema = new mongoose.Schema({
     title: {type: String},
-    pictureUrl: {type: String},
+    imageUrl: {type: String},
     preference: {type: Number, default: 0},
 })
 
@@ -15,4 +15,7 @@ let musicSchema = new mongoose.Schema({
     favorited: {type: Number}
 })
 
-module.exports = {'musicSchema': musicSchema, 'categorySchema': categorySchema};
+let Category = mongoose.model("Category", categorySchema);
+let Music = mongoose.model("Music", musicSchema);
+
+module.exports = {musicSchema: musicSchema, categorySchema: categorySchema, Category: Category, Music: Music};
