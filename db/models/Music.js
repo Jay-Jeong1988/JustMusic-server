@@ -1,4 +1,5 @@
 let mongoose = require("mongoose");
+let reportSchema = require("./Report.js");
 
 let categorySchema = new mongoose.Schema({
     title: {type: String},
@@ -8,11 +9,14 @@ let categorySchema = new mongoose.Schema({
 
 let musicSchema = new mongoose.Schema({
     title: {type: String},
+    description: {type: String},
     length: {type: String},
-    fileUrl: {type: String},
-    category: [categorySchema],
+    videoUrl: {type: String, unique: true},
+    categories: [categorySchema],
     artist: {type: String},
-    favorited: {type: Number}
+    favorited: {type: Number, default: 0},
+    reports: [reportSchema],
+    reportsCount: {type: Number, default: 0}
 })
 
 let Category = mongoose.model("Category", categorySchema);

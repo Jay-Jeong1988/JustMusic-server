@@ -1,6 +1,7 @@
 let mongoose = require('mongoose');
 let musicSchema = require("../Music.js")["musicSchema"];
 let categorySchema = require("../Music.js")["categorySchema"];
+let reportSchema = require("../Report.js");
 
 let contactInfoSchema = new mongoose.Schema({
     email: {type: String},
@@ -28,6 +29,9 @@ let userSchema = new mongoose.Schema({
     contactInfo: contactInfoSchema,
     profile: profileSchema,
     createdAt: {type: Date, default: Date.now},
+    reports: [reportSchema],
+    reportsCount: {type: Number, default: 0},
+    dailyUploadsCount: {type: Number}
 })
 
 module.exports = mongoose.model('User', userSchema);
