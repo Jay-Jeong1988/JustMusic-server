@@ -12,11 +12,11 @@ router.get('/categories', (req, res)=>{
 
 router.get('/categories/edit', (req, res)=>{
 
-    updateCategory(req.query.replaceFrom, req.query.replaceTo).then(result => {
+    updateCategoryImage(req.query.replaceFrom, req.query.replaceTo).then(result => {
         res.status(200).send(result.join("\n"));
     });
 
-    async function updateCategory(replaceFrom, replaceTo){
+    async function updateCategoryImage(replaceFrom, replaceTo){
         let result = [];
         await Category.find(function(err, categories) {
             if (err) res.status(500).send(err);
@@ -65,33 +65,47 @@ router.get('/categories/create', (req, res) => {
       })
 })
 
+router.get('/all', (req, res) => {
+  Music.find(function(err, allMusic) {
+    if (err) return console.error(err);
+    res.status(200).json(allMusic);
+  })
+})
+
 router.post('/create', (req, res) => {
+  console.log(req.body);
+
   const title = req.body.title;
   const videoUrl = req.body.videoUrl;
   const description = req.body.description;
-  const length = req.body.length;
-  const categoryStrings = req.body.categoryStrings;
-  const artist = req.body.artist;
+  const userNote = req.body.comment;
+  const categoryTitles = req.body.categoryTitles;
+  const publishedAt = req.body.publishedAt;
+  const channelName = req.body.channelName;
   const newCategories = [];
   const newMusic = new Music({
     title: title,
     description: description,
     videoUrl: videoUrl,
-    length: length,
-    artist: artist,
+    channelName: channelName,
+    userNote: userNote,
+    publishedAt: publishedAt,
     categories: []
   })
   
-  categoryStrings.forEach(categoryTitle => {
-    Category.findOne({"title": categoryTitle }, (err, category) => {
+  categoryTitles.forEach(categoryTitle => {
+    Category.findOne({"title": categoryTitle.toLowerCase() }, (err, category) => {
       if (err) return console.error(err);
       if (category == null) {
-        res.sendStatus(404).json({
+        res.status(404).json({
           error: "Invalid category"
         });
       }else{
         newMusic.categories.push(category);
+        console.log("category: " + categoryTitle.toLowerCase());
       }
+    }).catch(e => {
+      console.log(e);
     })
   });
   

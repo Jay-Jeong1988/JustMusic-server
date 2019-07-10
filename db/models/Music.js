@@ -10,10 +10,12 @@ let categorySchema = new mongoose.Schema({
 let musicSchema = new mongoose.Schema({
     title: {type: String},
     description: {type: String},
+    userNote: {type: String},
     length: {type: String},
     videoUrl: {type: String, unique: true},
     categories: [categorySchema],
-    artist: {type: String},
+    publishedAt: {type: String},
+    channelName: {type: String},
     favorited: {type: Number, default: 0},
     reports: [reportSchema],
     reportsCount: {type: Number, default: 0}
