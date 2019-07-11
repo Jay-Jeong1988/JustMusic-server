@@ -1,7 +1,8 @@
 var express = require('express');
 var router = express.Router();
-var Music = require("../db/models/Music")["Music"];
-var Category = require('../db/models/Music')["Category"];
+var Music = require("../db/models/schema")["Music"];
+var Category = require('../db/models/schema')["Category"];
+var User = require("../db/models/schema")["User"];
 
 router.get('/categories', (req, res)=>{
     Category.find(function(err, categories) {
@@ -82,6 +83,7 @@ router.post('/create', (req, res) => {
   const categoryTitles = req.body.categoryTitles;
   const publishedAt = req.body.publishedAt;
   const channelName = req.body.channelName;
+  const userId = req.body.userId;
   const newCategories = [];
   const newMusic = new Music({
     title: title,
@@ -90,44 +92,60 @@ router.post('/create', (req, res) => {
     channelName: channelName,
     userNote: userNote,
     publishedAt: publishedAt,
-    categories: []
+    categories: [],
   })
   
-  categoryTitles.forEach(categoryTitle => {
-    Category.findOne({"title": categoryTitle.toLowerCase() }, (err, category) => {
-      if (err) return console.error(err);
-      if (category == null) {
-        res.status(404).json({
-          error: "Invalid category"
-        });
-      }else{
-        newMusic.categories.push(category);
-        console.log("category: " + categoryTitle.toLowerCase());
-      }
-    }).catch(e => {
-      console.log(e);
-    })
-  });
-  
-  Music.findOne({"videoUrl": videoUrl}, (err, music) => {
-    if (err) return console.error(err);
-    if (music == null) {
-      newMusic.save().then( newMusic => {
-        console.log("successfully saved music: \n" + newMusic);
-        res.status(200).json({
-          msg: "successfully saved a new music: " + newMusic.title,
+  User.findById(userId, (err, user) => {
+    if (err) return console.error("error: " + err);
+    if (user != null) {
+      newMusic.uploader = user;
+      console.log("uploader: " + user);
+
+      categoryTitles.forEach(categoryTitle => {
+        Category.findOne({"title": categoryTitle.toLowerCase() }, (err, category) => {
+          if (err) return console.error(err);
+          if (category == null) {
+            res.status(404).json({
+              error: "Invalid category"
+            });
+          }else{
+            newMusic.categories.push(category);
+            console.log("category: " + categoryTitle.toLowerCase());
+          }
         })
-      }).catch(error => {
-        console.log(error.message);
-        res.status(500).json({
-          error: error.message
-        })
-      })
+      });
+      return user;
     }else {
       res.status(404).json({
-        error: "Music already exists"
-      })
+        error: "Invalid user"
+      });
     }
+  }).then((user)=>{
+    Music.findOne({"videoUrl": videoUrl}, (err, music) => {
+      if (err) return console.error(err);
+      if (music == null) {
+        newMusic.save().then( newMusic => {
+          console.log("successfully saved music: \n" + newMusic);
+
+          user.uploads.push(newMusic._id);
+          user.save().then( newUser => {
+            console.log("created music is saved into user's uploads");
+          })
+          res.status(200).json({
+            msg: "successfully saved a new music: " + newMusic.title,
+          })
+        }).catch(error => {
+          console.log(error.message);
+          res.status(500).json({
+            error: error.message
+          })
+        })
+      }else {
+        res.status(404).json({
+          error: "Music already exists"
+        })
+      }
+    })
   })
 })
 
