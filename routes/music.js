@@ -67,15 +67,33 @@ router.get('/categories/create', (req, res) => {
 })
 
 router.get('/all', (req, res) => {
-  Music.find(function(err, allMusic) {
-    if (err) return console.error(err);
-    res.status(200).json(allMusic);
-  })
+  if(Object.keys(req.query).length === 0){
+    Music.find(function(err, allMusic) {
+      if (err) return console.error(err);
+      res.status(200).json(allMusic);
+    })
+  }else{
+    let musicToBeSent = [];
+    Music.findOne((err, musics)=>{
+      Object.keys(req.query).forEach(key => {
+        Music.find({"categories.title": req.query[key]}, (err, musics) => {
+          if (err) return console.error(err);
+          musics.forEach(music => {
+            musicToBeSent.push(music);
+          });
+        })
+      })
+    }).then(()=>{
+      Music.findOne({"title": "sss"}, (err, music) => {
+        if (err) return console.error(err);
+        console.log(musicToBeSent); // watch for closure behavior
+        res.status(200).json(musicToBeSent);
+      })
+    })
+  }
 })
 
 router.post('/create', (req, res) => {
-  console.log(req.body);
-
   const title = req.body.title;
   const videoUrl = req.body.videoUrl;
   const description = req.body.description;
