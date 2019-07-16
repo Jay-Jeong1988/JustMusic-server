@@ -19,7 +19,8 @@ let userSchema = new mongoose.Schema({
     nickname: {type: String},
     uploads: [String],
     watchingHistory: [String],
-    likes: {type: Number, default: 0},
+    followers: {type: Number, default: 0},
+    likedMusic: [String],
     savedCategories: [String],
     savedMusic: [String],
     contactInfo: contactInfoSchema,
@@ -27,7 +28,8 @@ let userSchema = new mongoose.Schema({
     createdAt: {type: Date, default: Date.now},
     reports: [String],
     reportsCount: {type: Number, default: 0},
-    dailyUploadsCount: {type: Number}
+    dailyUploadsCount: {type: Number},
+    blockedVideos: [String]
 })
 
 

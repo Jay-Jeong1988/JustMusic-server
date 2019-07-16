@@ -67,20 +67,22 @@ router.get('/categories/create', (req, res) => {
 })
 
 router.get('/all', (req, res) => {
+  let musicToBeSent = [];
   if(Object.keys(req.query).length === 0){
     Music.find(function(err, allMusic) {
       if (err) return console.error(err);
       res.status(200).json(allMusic);
     })
   }else{
-    let musicToBeSent = [];
     Music.findOne((err, musics)=>{
       Object.keys(req.query).forEach(key => {
         Music.find({"categories.title": req.query[key]}, (err, musics) => {
           if (err) return console.error(err);
-          musics.forEach(music => {
-            musicToBeSent.push(music);
-          });
+          console.log("musics found: " + musics);
+          musicToBeSent = musics;
+          // musics.forEach(music => {
+          //   musicToBeSent.push(music);
+          // });
         })
       })
     }).then(()=>{
