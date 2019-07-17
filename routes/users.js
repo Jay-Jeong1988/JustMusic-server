@@ -65,6 +65,35 @@ router.post('/signup', (req, res) => {
     }
   })
 })
+
+router.get('/authenticate', (req, res) => {
+  if(Object.keys(req.query).length >= 1){
+    let phoneNumber = Object.keys(req.query).includes("pnum") ? req.query["pnum"] : "123";
+    User.findOne({"contactInfo.phoneNumber": phoneNumber}, (err, user) => {
+      if(user != null){
+        res.status(200).json({
+          msg: "User exists in system"
+        })
+      }else {
+        res.status(401).json({
+          msg: "User does not exist"
+        })
+      }
+    })
+  }else {
+    console.log("query is missing");
+    res.status(404).json({
+      msg: "User information missing"
+    })
+  }
+})
+
+
+
+
+
+
+
   // if(password === passwordConfirmation) {
     
   //   user.save().then( user => {

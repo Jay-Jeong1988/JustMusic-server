@@ -59,7 +59,7 @@ router.get('/categories/create', (req, res) => {
           })
         }else{
           res.status(200).json({
-            msg: "Existing user sent to client",
+            msg: "Existing category",
             category: category
           })
         }
@@ -78,6 +78,7 @@ router.get('/all', (req, res) => {
       Object.keys(req.query).forEach(key => {
         Music.find({"categories.title": req.query[key]}, (err, musics) => {
           if (err) return console.error(err);
+
           console.log("musics found: " + musics);
           musicToBeSent = musics;
           // musics.forEach(music => {
@@ -148,7 +149,7 @@ router.post('/create', (req, res) => {
           console.log("successfully saved music: \n" + newMusic);
 
           user.uploads.push(newMusic._id);
-          user.save().then( newUser => {
+          User.updateOne({ _id: user._id }, { $set: { uploads: user.uploads } }).then( newUser => {
             console.log("created music is saved into user's uploads");
           })
           res.status(200).json({

@@ -2,7 +2,7 @@ let mongoose = require('mongoose');
 
 let contactInfoSchema = new mongoose.Schema({
     email: {type: String},
-    phoneNumber: {type: String, unique: true},
+    phoneNumber: {type: String, unique: true, minlength: 7},
     createdAt: {type: Date, default: Date.now},
 })
 
