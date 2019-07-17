@@ -27,7 +27,7 @@ let userSchema = new mongoose.Schema({
     profile: profileSchema,
     createdAt: {type: Date, default: Date.now},
     reports: [String],
-    reportsCount: {type: Number, default: 0},
+    reportedByOthers: {type: Number, default: 0},
     dailyUploadsCount: {type: Number},
     blockedVideos: [String]
 })

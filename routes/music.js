@@ -22,7 +22,7 @@ router.get('/categories/edit', (req, res)=>{
         await Category.find(function(err, categories) {
             if (err) res.status(500).send(err);
             for(let category of categories){
-                category["imageUrl"] = category["imageUrl"].replace(`/${replaceFrom}/`, replaceTo);
+                category["imageUrl"] = category["imageUrl"].replace(replaceFrom, replaceTo);
                 category.save().then( newCategory => {
                     result.push(newCategory["imageUrl"]);
                 }).catch(err => {
@@ -114,13 +114,22 @@ router.post('/create', (req, res) => {
     userNote: userNote,
     publishedAt: publishedAt,
     categories: [],
+    uploader: {}
   })
   
   User.findById(userId, (err, user) => {
     if (err) return console.error("error: " + err);
     if (user != null) {
-      newMusic.uploader = user;
-      console.log("uploader: " + user);
+      newMusic.uploader = {
+        _id: user._id,
+        nickname: user.nickname,
+        uploads: user.uploads,
+        followers: user.follwers,
+        reports: user.reports,
+        reportedByOthers: user.reportedByOthers,
+        blockedVideos: user.blockedVideos,
+      }
+      console.log("uploader: " + newMusic.uploader);
 
       categoryTitles.forEach(categoryTitle => {
         Category.findOne({"title": categoryTitle.toLowerCase() }, (err, category) => {
