@@ -2,7 +2,7 @@ let mongoose = require('mongoose');
 
 let contactInfoSchema = new mongoose.Schema({
     email: {type: String},
-    phoneNumber: {type: String, unique: true, minlength: 7},
+    phoneNumber: {type: String, minlength: 7},
     createdAt: {type: Date, default: Date.now},
 })
 
@@ -23,8 +23,8 @@ let userSchema = new mongoose.Schema({
     likedMusic: [String],
     savedCategories: [String],
     savedMusic: [String],
-    contactInfo: contactInfoSchema,
-    profile: profileSchema,
+    contactInfo: {type: contactInfoSchema},
+    profile: {type: profileSchema},
     createdAt: {type: Date, default: Date.now},
     reports: [String],
     reportedByOthers: {type: Number, default: 0},
