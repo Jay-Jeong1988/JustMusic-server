@@ -69,12 +69,9 @@ router.get('/categories/create', (req, res) => {
 router.get('/all', (req, res) => {
   let musicToBeSent = [];
   if(Object.keys(req.query).length === 0){
-    Music.count().exec(function (err, count) {
-      var random = Math.floor(Math.random() * count);
-      Music.findOne().skip(random).exec(function(err, allMusic) {
-        if (err) return console.error(err);
-       res.status(200).json(allMusic);
-      })
+    Music.find(function(err, allMusic) {
+      if (err) return console.error(err);
+      res.status(200).json(allMusic);
     })
   }else{
     Music.findOne((err, musics)=>{
