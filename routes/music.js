@@ -34,31 +34,6 @@ router.get('/categories/edit', (req, res)=>{
     }
 })
 
-router.get('/edit', (req, res)=>{
-
-  updateMusicTitle().then(result => {
-      res.status(200).send(result.join("\n"));
-  });
-
-  async function updateMusicTitle(){
-      let result = [];
-      await Music.find(function(err, music) {
-          if (err) res.status(500).send(err);
-          for(let el of music){
-            el["categories"].forEach(c => {
-              if (c.title[0] == c.title[0].toUpperCase()){
-                c.title = c.title[0].toLowerCase() + c.title.slice(1);
-                c.save().then( newC => {
-                  console.log("editted:" + newC.title);
-                })
-              };
-            })
-          }
-      })
-      return result;
-  }
-})
-
 router.get('/categories/create', (req, res) => {
     console.log(req.query)
     const title = req.query.title;
@@ -142,7 +117,8 @@ router.post('/create', (req, res) => {
         userNote: userNote,
         publishedAt: publishedAt,
         categories: [],
-        uploader: {_id: userId}
+        uploader: {_id: userId},
+        uploadStatus: "pending"
       })
       
       newMusic.save().then( newMusic => {

@@ -51,7 +51,8 @@ let musicSchema = new mongoose.Schema({
     channelName: {type: String},
     favorited: {type: Number, default: 0},
     reports: [String],
-    reportsCount: {type: Number, default: 0}
+    reportsCount: {type: Number, default: 0},
+    uploadStatus: [String]
 })
 
 let reportSchema = new mongoose.Schema({
