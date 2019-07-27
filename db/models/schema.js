@@ -34,7 +34,7 @@ let userSchema = new mongoose.Schema({
 
 
 let categorySchema = new mongoose.Schema({
-    title: {type: String, unique: true},
+    title: {type: String, unique: true, lowercase: true},
     imageUrl: {type: String},
     preference: {type: Number, default: 0},
 })

@@ -34,6 +34,31 @@ router.get('/categories/edit', (req, res)=>{
     }
 })
 
+router.get('/edit', (req, res)=>{
+
+  updateMusicTitle().then(result => {
+      res.status(200).send(result.join("\n"));
+  });
+
+  async function updateMusicTitle(){
+      let result = [];
+      await Music.find(function(err, music) {
+          if (err) res.status(500).send(err);
+          for(let el of music){
+            el["categories"].forEach(c => {
+              if (c.title[0] == c.title[0].toUpperCase()){
+                c.title = c.title[0].toLowerCase() + c.title.slice(1);
+                c.save().then( newC => {
+                  console.log("editted:" + newC.title);
+                })
+              };
+            })
+          }
+      })
+      return result;
+  }
+})
+
 router.get('/categories/create', (req, res) => {
     console.log(req.query)
     const title = req.query.title;
@@ -81,15 +106,15 @@ router.get('/all', (req, res) => {
 
           console.log("musics found: " + musics);
           musicToBeSent = musics;
-          // musics.forEach(music => {
-          //   musicToBeSent.push(music);
-          // });
+          musics.forEach(music => {
+            musicToBeSent.push(music);
+          });
         })
       })
     }).then(()=>{
       Music.findOne({"title": "sss"}, (err, music) => {
         if (err) return console.error(err);
-        console.log(musicToBeSent); // watch for closure behavior
+        console.log("musics to be sent" + musicToBeSent); // watch for closure behavior
         res.status(200).json(musicToBeSent);
       })
     })
@@ -119,12 +144,18 @@ router.post('/create', (req, res) => {
         categories: [],
         uploader: {_id: userId}
       })
-      categoryTitles.forEach(categoryTitle => {
-        newMusic.categories.push({title: categoryTitle});
-      })
+      
       newMusic.save().then( newMusic => {
         console.log("successfully saved music: \n" + newMusic);
 
+        categoryTitles.forEach(categoryTitle => {
+          Category.findOne({title: categoryTitle}, (err, category) => {
+            newMusic.categories.push(category);
+            Music.updateOne({ _id: newMusic._id}, { $push: { categories: category} }).then( updatedMusic => {
+              console.log("pushed category, " + category.title)
+            });
+          })});
+        
         User.findById(userId, (err, user) => {
           if (err) return console.error(err);
           if (user != null) {
