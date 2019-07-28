@@ -74,25 +74,35 @@ router.get('/all', (req, res) => {
       res.status(200).json(allMusic);
     })
   }else{
-    Music.findOne((err, musics)=>{
-      Object.keys(req.query).forEach(key => {
-        Music.find({"categories.title": req.query[key]}, (err, musics) => {
-          if (err) return console.error(err);
-
-          console.log("musics found: " + musics);
-          musicToBeSent = musics;
-          musics.forEach(music => {
-            musicToBeSent.push(music);
-          });
-        })
-      })
-    }).then(()=>{
-      Music.findOne({"title": "sss"}, (err, music) => {
+    var promises = [];
+    for(let i=0; i < Object.keys(req.query).length; i++){
+      promises.push(Music.find({"categories.title": req.query[`category${i}`]}, (err, musics) => {
         if (err) return console.error(err);
-        console.log("musics to be sent" + musicToBeSent); // watch for closure behavior
-        res.status(200).json(musicToBeSent);
-      })
-    })
+        console.log("musics found with category, " + req.query[`category${i}`] + ": " + musics.length);
+        return musics;
+      }));
+    }
+    Promise.all(promises).then((values) => {
+	let musics = values.flat();
+	let musicIds = [];
+	let checkingIndex = 0;
+	let independentArray = JSON.parse(JSON.stringify(musics));
+
+	for(let music of musics){
+	  musicIds.push(music._id.toString());
+	}
+
+	for(let i = 0; i < independentArray.length; i++){
+    	  let rest = musicIds.slice(i+1);
+	  if(rest.includes(musics[checkingIndex]._id.toString())) {
+	    musics.splice(musics.indexOf(musics[checkingIndex]),1);
+	  }else {
+	    checkingIndex++;
+	  }
+	}
+        console.log("sending: " + musics.length);
+	res.status(200).json(musics);
+    });
   }
 })
 
@@ -117,14 +127,14 @@ router.post('/create', (req, res) => {
         userNote: userNote,
         publishedAt: publishedAt,
         categories: [],
-        uploader: {_id: userId},
+        uploader: {},
         uploadStatus: "pending"
       })
       
       newMusic.save().then( newMusic => {
         console.log("successfully saved music: \n" + newMusic);
 
-        categoryTitles.forEach(categoryTitle => {
+        categoryTitles.forEach(categoryTitle => {	  
           Category.findOne({title: categoryTitle}, (err, category) => {
             newMusic.categories.push(category);
             Music.updateOne({ _id: newMusic._id}, { $push: { categories: category} }).then( updatedMusic => {
@@ -135,6 +145,9 @@ router.post('/create', (req, res) => {
         User.findById(userId, (err, user) => {
           if (err) return console.error(err);
           if (user != null) {
+	     Music.updateOne({ _id: newMusic._id}, { $set: { uploader: user} }).then( updatedMusic => {
+              console.log("user, " + user.nickname + " is added.");
+            });
             user.uploads.push(newMusic._id);  
             User.updateOne({ _id: user._id }, { $set: { uploads: user.uploads } }).then( newUser => {
               console.log("created music is saved into user's uploads");
@@ -153,7 +166,8 @@ router.post('/create', (req, res) => {
         })
       })
     }else {
-      res.status(404).json({
+	console.log("Music already exists");
+      res.status(500).json({
         error: "Music already exists"
       })
     }

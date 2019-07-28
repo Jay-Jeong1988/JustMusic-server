@@ -34,7 +34,7 @@ let userSchema = new mongoose.Schema({
 
 
 let categorySchema = new mongoose.Schema({
-    title: {type: String, unique: true, lowercase: true},
+    title: {type: String, lowercase: true},
     imageUrl: {type: String},
     preference: {type: Number, default: 0},
 })
@@ -52,7 +52,7 @@ let musicSchema = new mongoose.Schema({
     favorited: {type: Number, default: 0},
     reports: [String],
     reportsCount: {type: Number, default: 0},
-    uploadStatus: [String]
+    uploadStatus: {String}
 })
 
 let reportSchema = new mongoose.Schema({

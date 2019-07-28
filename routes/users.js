@@ -9,6 +9,25 @@ router.get('/', function(req, res, next) {
   })
 });
 
+router.get('/edit', (req, res)=>{
+
+  updateUser().then(() => {
+      res.status(200).send("success");
+  });
+
+  async function updateUser(){
+      await User.findById("5d3ba6b5dcf0fc2cd5614d48", function(err, user) {
+          if (err) res.status(500).send(err);
+          user.nickname = "JustMusic";
+          user.save().then( updatedUser => {
+              console.log(updatedUser + " is updated");
+          }).catch(err => {
+              result.push(err.message);
+          });
+      })
+  }
+})
+
 router.post('/login', function(req, res) {
   User.findOne({email: req.body.accountId}, function (err, user) {
     if (err) return console.error(err);
