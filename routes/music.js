@@ -71,6 +71,7 @@ router.get('/all', (req, res) => {
   if(Object.keys(req.query).length === 0){
     Music.find(function(err, allMusic) {
       if (err) return console.error(err);
+      console.log("sending " + allMusic.length + " songs");
       res.status(200).json(allMusic);
     })
   }else{
@@ -78,7 +79,7 @@ router.get('/all', (req, res) => {
     for(let i=0; i < Object.keys(req.query).length; i++){
       promises.push(Music.find({"categories.title": req.query[`category${i}`]}, (err, musics) => {
         if (err) return console.error(err);
-        console.log("musics found with category, " + req.query[`category${i}`] + ": " + musics.length);
+        console.log("songs found with category, " + req.query[`category${i}`] + ": " + musics.length);
         return musics;
       }));
     }
@@ -100,7 +101,7 @@ router.get('/all', (req, res) => {
 	    checkingIndex++;
 	  }
 	}
-        console.log("sending: " + musics.length);
+        console.log("sending: " + musics.length + " songs");
 	res.status(200).json(musics);
     });
   }
