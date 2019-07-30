@@ -11,12 +11,12 @@ router.get('/', function(req, res, next) {
 
 router.get('/edit', (req, res)=>{
 
-  updateUser().then(() => {
+  updateUser(req.query.nickname).then(() => {
       res.status(200).send("success");
   });
 
-  async function updateUser(){
-      await User.findById("5d3ba6b5dcf0fc2cd5614d48", function(err, user) {
+  async function updateUser(nickname){
+      await User.findOne({nickname: nickname}, function(err, user) {
           if (err) res.status(500).send(err);
           user.nickname = "JustMusic";
           user.save().then( updatedUser => {
@@ -54,7 +54,7 @@ router.post('/signup', (req, res) => {
   const accountId = req.body.accountId;
   const password = req.body.password;
   const passwordConfirmation = req.body.passwordConfirmation;
-  const nickname = req.body.nickname || "user" + phoneNumber;
+  const nickname = req.body.nickname || "user" + "00" + _mixPhoneNumber;
   const newUser = new User({ 
     nickname: nickname,
     contactInfo: {phoneNumber: phoneNumber},
@@ -83,6 +83,19 @@ router.post('/signup', (req, res) => {
       })
     }
   })
+
+  function _mixPhoneNumber(number) {
+    var a = this.split(""),
+        n = a.length;
+
+    for(var i = n - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        var tmp = a[i];
+        a[i] = a[j];
+        a[j] = tmp;
+    }
+    return a.join("");
+  }
 })
 
 router.get('/authenticate', (req, res) => {
