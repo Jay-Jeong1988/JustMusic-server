@@ -45,6 +45,7 @@ let musicSchema = new mongoose.Schema({
     userNote: {type: String},
     length: {type: String},
     videoUrl: {type: String, unique: true},
+    thumbnailUrl: {type: String},
     categories: [categorySchema],
     uploader: {type: userSchema, required: true},
     publishedAt: {type: String},

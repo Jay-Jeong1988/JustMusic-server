@@ -115,6 +115,7 @@ router.post('/create', (req, res) => {
   const title = req.body.title;
   const videoUrl = req.body.videoUrl;
   const description = req.body.description;
+  const thumbnailUrl = req.body.thumbnailUrl;
   const userNote = req.body.comment;
   const categoryTitles = req.body.categoryTitles;
   const publishedAt = req.body.publishedAt;
@@ -133,6 +134,7 @@ router.post('/create', (req, res) => {
         channelName: channelName,
         userNote: userNote,
         publishedAt: publishedAt,
+        thumbnailUrl: thumbnailUrl,
         categories: [],
         uploader: {},
         uploadStatus: "pending"
