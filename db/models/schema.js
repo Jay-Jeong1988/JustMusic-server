@@ -11,25 +11,34 @@ let profileSchema = new mongoose.Schema({
     lastName: {type: String},
     birthDay: {type: Date},
     createdAt: {type: Date, default: Date.now},
+    pictureUrl: {type: String}
+})
+
+let playListSchema = new mongoose.Schema({
+    title: {type: String, length: 30},
+    songs: [{type: mongoose.Schema.Types.ObjectId,
+        ref: 'Music'}]
 })
 
 let userSchema = new mongoose.Schema({
     accountId: {type: String},
     password: {type: String},
     nickname: {type: String},
-    uploads: [String],
     watchingHistory: [String],
     followers: {type: Number, default: 0},
-    likedMusic: [String],
-    savedCategories: [String],
-    savedMusic: [String],
+    likedMusic: [{type: mongoose.Schema.Types.ObjectId,
+        ref: 'Music'}],
+    playLists: [{type: mongoose.Schema.Types.ObjectId,
+        ref: 'PlayList'}],
     contactInfo: {type: contactInfoSchema},
     profile: {type: profileSchema},
     createdAt: {type: Date, default: Date.now},
-    reports: [String],
+    reports: [{type: mongoose.Schema.Types.ObjectId,
+        ref: 'Report'}],
     reportedByOthers: {type: Number, default: 0},
     dailyUploadsCount: {type: Number},
-    blockedVideos: [String]
+    blockedVideos: [{type: mongoose.Schema.Types.ObjectId,
+        ref: 'Music'}]
 })
 
 
@@ -50,7 +59,7 @@ let musicSchema = new mongoose.Schema({
     uploader: {type: userSchema, required: true},
     publishedAt: {type: String},
     channelName: {type: String},
-    favorited: {type: Number, default: 0},
+    likes: {type: Number, default: 0},
     reports: [String],
     reportsCount: {type: Number, default: 0},
     uploadStatus: {String}
