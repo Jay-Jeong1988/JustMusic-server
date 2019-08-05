@@ -196,6 +196,32 @@ router.get('/blocks/:userId', (req, res) => {
   })
 })
 
+router.get('/isLiked', (req, res) => {
+  User.findById(req.query.userId)
+  .populate('likedMusic')
+  .select('likedMusic')
+  .exec((err, data) => {
+    let isLiked = false;
+    for(let music of data.likedMusic){
+      if (music._id == req.query.musicId) isLiked = true;
+    }
+    res.status(200).json({"isLiked": isLiked});
+  })
+})
+
+router.get('/isBlocked', (req, res) => {
+  User.findById(req.query.userId)
+  .populate('blockedVideos')
+  .select('blockedVideos')
+  .exec((err, data) => {
+    let isBlocked = false;
+    for(let music of data.blockedVideos){
+      if (music._id == req.query.musicId) isBlocked = true;
+    }
+    res.status(200).json({"isBlocked": isBlocked});
+  })
+})
+
 
 router.post('/create', (req, res) => {
   const title = req.body.title;
