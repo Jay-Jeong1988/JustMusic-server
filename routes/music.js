@@ -118,6 +118,85 @@ router.get('/myposts/:userId', (req, res) => {
   })
 })
 
+router.get('/likes/create', (req, res) => {
+  User.updateOne({_id: req.query.userId}, {
+    $push: {
+      likedMusic: req.query.musicId
+    }}).then(() => {
+        console.log("pushed the song into likedMusic");
+        res.status(200).send("pushed the song into likedMusic");
+    }).catch(error => {
+      console.log(error.message);
+      res.status(500).json({
+        error: error.message
+      })
+    })
+})
+
+router.get('/likes/delete', (req, res) => {
+  User.updateOne({_id: req.query.userId}, {
+    $pull: {
+      likedMusic: req.query.musicId
+    }}).then(() => {
+      console.log("pulled the song from likedMusic");
+      res.status(200).send("pulled the song from likedMusic");
+    }).catch(error => {
+      console.log(error.message);
+      res.status(500).json({
+        error: error.message
+      })
+    })
+})
+
+router.get('/likes/:userId', (req, res) => {
+  User.findById(req.params.userId)
+  .populate('likedMusic')
+  .select('likedMusic')
+  .exec((err, data)=>{
+    res.json(data.likedMusic);
+  })
+})
+
+router.get('/blocks/create', (req, res) => {
+  User.updateOne({_id: req.query.userId}, {
+    $push: {
+      blockedVideos: req.query.musicId
+    }}).then(() => {
+        console.log("pushed the song into blockedVideos");
+        res.status(200).send("pushed the song into blockedVideos");
+    }).catch(error => {
+      console.log(error.message);
+      res.status(500).json({
+        error: error.message
+      })
+    })
+})
+
+router.get('/blocks/delete', (req, res) => {
+  User.updateOne({_id: req.query.userId}, {
+    $pull: {
+      blockedVideos: req.query.musicId
+    }}).then(() => {
+      console.log("pulled the song from blockedVideos");
+      res.status(200).send("pulled the song from blockedVideos");
+    }).catch(error => {
+      console.log(error.message);
+      res.status(500).json({
+        error: error.message
+      })
+    })
+})
+
+router.get('/blocks/:userId', (req, res) => {
+  User.findById(req.params.userId)
+  .populate('blockedVideos')
+  .select('blockedVideos')
+  .exec((err, data)=>{
+    res.json(data.blockedVideos);
+  })
+})
+
+
 router.post('/create', (req, res) => {
   const title = req.body.title;
   const videoUrl = req.body.videoUrl;
