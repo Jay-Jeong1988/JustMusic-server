@@ -3,6 +3,7 @@ var router = express.Router();
 var Music = require("../db/models/schema")["Music"];
 var Category = require('../db/models/schema')["Category"];
 var User = require("../db/models/schema")["User"];
+var PlayList = require("../db/models/schema")["PlayList"];
 
 router.get('/categories', (req, res) => {
   Category.find(function (err, categories) {
@@ -124,7 +125,13 @@ router.get('/likes/create', (req, res) => {
       likedMusic: req.query.musicId
     }}).then(() => {
         console.log("pushed the song into likedMusic");
-        res.status(200).send("pushed the song into likedMusic");
+        Music.updateOne({_id: req.query.musicId}, {
+          $inc: {
+            likesCount: 1
+          }
+        }).then(() => {
+          res.status(200).send("pushed the song into likedMusic");
+        })
     }).catch(error => {
       console.log(error.message);
       res.status(500).json({
@@ -137,15 +144,21 @@ router.get('/likes/delete', (req, res) => {
   User.updateOne({_id: req.query.userId}, {
     $pull: {
       likedMusic: req.query.musicId
-    }}).then(() => {
-      console.log("pulled the song from likedMusic");
+  }}).then(() => {
+    console.log("pulled the song from likedMusic");
+    Music.updateOne({_id: req.query.musicId}, {
+      $inc: {
+        likesCount: -1
+      }
+    }).then(() => {
       res.status(200).send("pulled the song from likedMusic");
-    }).catch(error => {
-      console.log(error.message);
-      res.status(500).json({
-        error: error.message
-      })
     })
+  }).catch(error => {
+    console.log(error.message);
+    res.status(500).json({
+      error: error.message
+    })
+  })
 })
 
 router.get('/likes/:userId', (req, res) => {
@@ -153,7 +166,11 @@ router.get('/likes/:userId', (req, res) => {
   .populate('likedMusic')
   .select('likedMusic')
   .exec((err, data)=>{
-    res.json(data.likedMusic);
+    if (data) {
+      res.status(200).statusjson(data.likedMusic);
+    }else {
+      res.status(404).json({"message": "User does not exist"});
+    }
   })
 })
 
@@ -163,7 +180,24 @@ router.get('/blocks/create', (req, res) => {
       blockedVideos: req.query.musicId
     }}).then(() => {
         console.log("pushed the song into blockedVideos");
-        res.status(200).send("pushed the song into blockedVideos");
+        User.updateOne({_id: req.query.userId}, {
+          $pull: {
+            likedMusic: req.query.musicId
+        }}).then(() => {
+          console.log("pulled the song from likedMusic");
+          Music.updateOne({_id: req.query.musicId}, {
+            $inc: {
+              blocksCount: 1
+            }
+          }).then(() => {
+            res.status(200).send("pushed the song into blockedVideos and pulled the song from likedMusic(if any)");
+          })
+        }).catch(error => {
+          console.log(error.message);
+          res.status(500).json({
+            error: error.message
+          })
+        })
     }).catch(error => {
       console.log(error.message);
       res.status(500).json({
@@ -178,7 +212,13 @@ router.get('/blocks/delete', (req, res) => {
       blockedVideos: req.query.musicId
     }}).then(() => {
       console.log("pulled the song from blockedVideos");
-      res.status(200).send("pulled the song from blockedVideos");
+      Music.updateOne({_id: req.query.musicId}, {
+        $inc: {
+          blocksCount: -1
+        }
+      }).then(() => {
+        res.status(200).send("pulled the song from blockedVideos");
+      })
     }).catch(error => {
       console.log(error.message);
       res.status(500).json({
@@ -192,7 +232,12 @@ router.get('/blocks/:userId', (req, res) => {
   .populate('blockedVideos')
   .select('blockedVideos')
   .exec((err, data)=>{
-    res.json(data.blockedVideos);
+    if (err) return console.error(err);
+    if (data) {
+      res.status(200).json(data.blockedVideos);
+    }else {
+      res.status(404).json({"message": "User does not exist"});
+    }
   })
 })
 
@@ -201,12 +246,17 @@ router.get('/isLiked', (req, res) => {
   .populate('likedMusic')
   .select('likedMusic')
   .exec((err, data) => {
+    if (err) return console.error(err);
     let isLiked = false;
-    for(let music of data.likedMusic){
-      if (music._id == req.query.musicId) isLiked = true;
+    if (data) {
+      for(let music of data.likedMusic){
+        if (music._id == req.query.musicId) isLiked = true;
+      }
+      res.status(200).json({"isLiked": isLiked});
+    }else {
+      res.status(404).json({"message": "User does not exist"});
     }
-    res.status(200).json({"isLiked": isLiked});
-  })
+  });
 })
 
 router.get('/isBlocked', (req, res) => {
@@ -215,10 +265,14 @@ router.get('/isBlocked', (req, res) => {
   .select('blockedVideos')
   .exec((err, data) => {
     let isBlocked = false;
-    for(let music of data.blockedVideos){
-      if (music._id == req.query.musicId) isBlocked = true;
+    if (data) {
+      for(let music of data.blockedVideos){
+        if (music._id == req.query.musicId) isBlocked = true;
+      }
+      res.status(200).json({"isBlocked": isBlocked});
+    }else {
+      res.status(404).json({"message": "User does not exist"});
     }
-    res.status(200).json({"isBlocked": isBlocked});
   })
 })
 
@@ -306,5 +360,64 @@ router.post('/create', (req, res) => {
   })
 })
 
+router.get('/playList/:playListId/addMusic', (req, res) => {
+  Music.findById(req.query.musicId, (err, music) => {
+    if (err) return console.error(err);
+    PlayList.updateOne({_id: req.params.playListId}, {
+      $push: {
+        songs: music
+      }
+    }).then(()=> {
+      console.log("1 song is added in a play list");
+      res.status(200).json({message: "1 song is added in play list"});
+    })
+    .catch((error) => {
+      console.log(error.message);
+      res.status(500).json({message: error.message});
+    })
+  })
+})
+
+router.post('/playLists/create', (req, res) => {
+  const playList = new PlayList({
+    title: req.body.title,
+    songs: []
+  })
+  if (req.query.musicId) {
+    Music.findById(req.query.musicId, (err, music) => {
+      playList.songs.push(music);
+      User.updateOne({_id: req.query.userId}, {
+        $push: {
+          playLists: playList
+        }
+      }).then(()=> {
+        console.log("new play list is created with one song");
+        res.status(200).json({message: "new play list is created with one song"});
+      })
+    })
+  }else {
+    User.updateOne({_id: req.query.userId}, {
+      $push: {
+        playLists: playList
+      }
+    }).then(() => {
+      console.log("new empty play list is created");
+      res.status(200).json({message: "new empty play list is created"});
+    })
+  }
+})
+
+router.get('/playLists/:index', (req, res) => {
+  User.findById(req.query.userId)
+  .select('playLists')
+  .exec((err, data) => {
+    if(err) return console.error(err);
+    if(req.params.index){
+      res.status(200).json(data.playLists[req.params.index]);
+    }else {
+      res.status(200).json(data.playLists);
+    }
+  })
+})
 
 module.exports = router;

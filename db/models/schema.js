@@ -15,7 +15,7 @@ let profileSchema = new mongoose.Schema({
 })
 
 let playListSchema = new mongoose.Schema({
-    title: {type: String, length: 30},
+    title: {type: String, length: 50},
     songs: [{type: mongoose.Schema.Types.ObjectId,
         ref: 'Music'}]
 })
@@ -24,7 +24,6 @@ let userSchema = new mongoose.Schema({
     accountId: {type: String},
     password: {type: String},
     nickname: {type: String},
-    watchingHistory: [String],
     followers: {type: Number, default: 0},
     likedMusic: [{type: mongoose.Schema.Types.ObjectId,
         ref: 'Music'}],
@@ -33,9 +32,6 @@ let userSchema = new mongoose.Schema({
     contactInfo: {type: contactInfoSchema},
     profile: {type: profileSchema},
     createdAt: {type: Date, default: Date.now},
-    reports: [{type: mongoose.Schema.Types.ObjectId,
-        ref: 'Report'}],
-    reportedByOthers: {type: Number, default: 0},
     dailyUploadsCount: {type: Number},
     blockedVideos: [{type: mongoose.Schema.Types.ObjectId,
         ref: 'Music'}]
@@ -52,16 +48,14 @@ let musicSchema = new mongoose.Schema({
     title: {type: String},
     description: {type: String},
     userNote: {type: String},
-    length: {type: String},
     videoUrl: {type: String, unique: true},
     thumbnailUrl: {type: String},
     categories: [categorySchema],
     uploader: {type: userSchema, required: true},
     publishedAt: {type: String},
     channelName: {type: String},
-    likes: {type: Number, default: 0},
-    reports: [String],
-    reportsCount: {type: Number, default: 0},
+    likesCount: {type: Number, default: 0},
+    blocksCount: {type: Number, default: 0},
     uploadStatus: {String}
 })
 
@@ -75,5 +69,6 @@ let reportSchema = new mongoose.Schema({
 let User = mongoose.model('User', userSchema);
 let Category = mongoose.model("Category", categorySchema);
 let Music = mongoose.model("Music", musicSchema);
+let PlayList = mongoose.model("PlayList", playListSchema);
 
-module.exports = {User: User, Category: Category, Music: Music};
+module.exports = {User: User, Category: Category, Music: Music, PlayList: PlayList};
