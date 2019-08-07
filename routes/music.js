@@ -167,7 +167,7 @@ router.get('/likes/:userId', (req, res) => {
   .select('likedMusic')
   .exec((err, data)=>{
     if (data) {
-      res.status(200).statusjson(data.likedMusic);
+      res.status(200).json(data.likedMusic);
     }else {
       res.status(404).json({"message": "User does not exist"});
     }
