@@ -126,17 +126,44 @@ router.get('/all/:userId', (req, res) => {
         if(err) return console.error(err);
         if (data) {
           let allMusicIds = [];
+	  let blockedVideosIndexes = [];
           for(let music of allMusic) {
             allMusicIds.push(`${music._id}`);
           }
+	  let j = 0;
           console.log("user's total blocked videos: " + data.blockedVideos.length);
           console.log("music count before: " + allMusic.length);
           for(let i = 0; i < data.blockedVideos.length; i++) {
             let matchingIndex = allMusicIds.indexOf(`${data.blockedVideos[i]}`);
             if ( matchingIndex > -1){
-              allMusic.splice(matchingIndex, 1);
+              blockedVideosIndexes = sortIndexes(matchingIndex, j);
+	      j++;
             }
           }
+
+	  function sortIndexes(matchingIndex, i) {
+           if(i > 0) {
+             if (blockedVideosIndexes[i - 1] > matchingIndex) {
+               blockedVideosIndexes.push(matchingIndex);
+             }else {
+               recursivelySortIndexes(matchingIndex, i);
+             }
+           }else {
+	     blockedVideosIndexes.push(matchingIndex);
+           }
+           return blockedVideosIndexes;
+         }
+
+	  function recursivelySortIndexes(matchingIndex, i) {
+            if (blockedVideosIndexes[i-1] < matchingIndex) {
+              blockedVideosIndexes.splice(i, 1);
+              blockedVideosIndexes.splice(i-1, 0, matchingIndex);
+              recursivelySortIndexes(matchingIndex, --i);
+            }
+          }
+	  for(let index of blockedVideosIndexes){
+	    allMusic.splice(index, 1);
+	  }
           console.log("music count after: " + allMusic.length + " (sending music)");
           res.status(200).json(allMusic);
         }else {
