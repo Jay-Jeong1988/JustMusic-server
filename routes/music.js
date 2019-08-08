@@ -69,51 +69,93 @@ router.get('/categories/create', (req, res) => {
   })
 })
 
-router.get('/all', (req, res) => {
+router.get('/all/:userId', (req, res) => {
   let musicToBeSent = [];
-  if (Object.keys(req.query).length === 0) {
-    Music.find(function (err, allMusic) {
-      if (err) return console.error(err);
-      console.log("sending " + allMusic.length + " songs");
-      res.status(200).json(allMusic);
-    })
-  } else {
-    var promises = [];
-    for (let i = 0; i < Object.keys(req.query).length; i++) {
-      promises.push(Music.find({
-        "categories.title": req.query[`category${i}`]
-      }, (err, musics) => {
+
+  function getMusicsPromise(queryKeys){
+    if (queryKeys.length === 0) {
+      return Music.find(function (err, allMusic) {
         if (err) return console.error(err);
-        console.log("songs found with category, " + req.query[`category${i}`] + ": " + musics.length);
-        return musics;
-      }));
-    }
-    Promise.all(promises).then((values) => {
-      let musics = values.flat();
-      let musicIds = [];
-      let checkingIndex = 0;
-      let independentArray = JSON.parse(JSON.stringify(musics));
-
-      for (let music of musics) {
-        musicIds.push(music._id.toString());
+        return allMusic;
+      });
+    } else {
+      var promises = [];
+      for (let i = 0; i < Object.keys(req.query).length; i++) {
+        promises.push(Music.find({
+          "categories.title": req.query[`category${i}`]
+        }, (err, musics) => {
+          if (err) return console.error(err);
+          console.log("songs found with category, " + req.query[`category${i}`] + ": " + musics.length);
+          return musics;
+        }));
       }
+      return Promise.all(promises).then((values) => {
+        let musics = values.flat();
+        let musicIds = [];
+        let checkingIndex = 0;
+        let independentArray = JSON.parse(JSON.stringify(musics));
 
-      for (let i = 0; i < independentArray.length; i++) {
-        let rest = musicIds.slice(i + 1);
-        if (rest.includes(musics[checkingIndex]._id.toString())) {
-          musics.splice(musics.indexOf(musics[checkingIndex]), 1);
-        } else {
-          checkingIndex++;
+        for (let music of musics) {
+          musicIds.push(music._id.toString());
         }
-      }
-      console.log("sending: " + musics.length + " songs");
-      res.status(200).json(musics);
-    });
+
+        for (let i = 0; i < independentArray.length; i++) {
+          let rest = musicIds.slice(i + 1);
+          if (rest.includes(musics[checkingIndex]._id.toString())) {
+            musics.splice(musics.indexOf(musics[checkingIndex]), 1);
+          } else {
+            checkingIndex++;
+          }
+        }
+        return musics;
+      });
+    }
   }
+
+  getMusicsPromise(Object.keys(req.query)).then( allMusic => {
+    if (req.params.userId === "111111111111111111111111"){
+      Music.find(function (err, allMusic) {
+        if (err) return console.error(err);
+        console.log("sending " + allMusic.length + " songs");
+        res.json(allMusic);
+      });
+    }else {
+      User.findById(req.params.userId)
+      .select('blockedVideos')
+      .exec((err, data) => {
+        if(err) return console.error(err);
+        if (data) {
+          let allMusicIds = [];
+          for(let music of allMusic) {
+            allMusicIds.push(`${music._id}`);
+          }
+          console.log("user's total blocked videos: " + data.blockedVideos.length);
+          console.log("music count before: " + allMusic.length);
+          for(let i = 0; i < data.blockedVideos.length; i++) {
+            let matchingIndex = allMusicIds.indexOf(`${data.blockedVideos[i]}`);
+            if ( matchingIndex > -1){
+              allMusic.splice(matchingIndex, 1);
+            }
+          }
+          console.log("music count after: " + allMusic.length + " (sending music)");
+          res.status(200).json(allMusic);
+        }else {
+          console.error("Invalid user id");
+          res.status(404).json({
+            message: "Invalid user id"
+          })
+        }
+      })
+    }
+  })
 })
 
 router.get('/myposts/:userId', (req, res) => {
-  Music.find({"uploader._id": req.params.userId}, (err, songs) => {
+  Music.find({"uploader._id": req.params.userId})
+  .sort({
+      likesCount: -1
+    })
+  .exec((err, songs) => {
     if (err) return console.error(err);
     res.status(200).json(songs);
   })
@@ -418,6 +460,13 @@ router.get('/playLists/:index', (req, res) => {
       res.status(200).json(data.playLists);
     }
   })
+})
+
+router.get('/getAll', (req, res) => {
+  Music.find(function (err, allMusic) {
+    if (err) return console.error(err);
+    res.json(allMusic);
+  });
 })
 
 module.exports = router;
