@@ -66,10 +66,7 @@ router.post('/signup', (req, res) => {
     if (user == null) {
       newUser.save().then( newUser => {
         console.log("successfully created user: \n" + newUser);
-        res.status(200).json({
-          msg: "successfully created a new user: " + newUser.nickname,
-          user: newUser
-        })
+        res.status(200).json(newUser);
       }).catch(error => {
         console.log(error.message);
           res.status(500).json({
@@ -77,10 +74,7 @@ router.post('/signup', (req, res) => {
           })
       })
     }else{
-      res.status(200).json({
-        msg: "Existing user sent to client",
-        user: user
-      })
+      res.status(200).json(user);
     }
   })
 
