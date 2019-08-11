@@ -1,5 +1,6 @@
 var express = require('express');
 var router = express.Router();
+var mongoose = require("mongoose");
 var Music = require("../db/models/schema")["Music"];
 var Category = require('../db/models/schema')["Category"];
 var User = require("../db/models/schema")["User"];
@@ -73,7 +74,11 @@ router.get('/all/:userId', (req, res) => {
   function getMusicsPromise(queryKeys) {
     if (queryKeys.length === 0) {
       var random = Math.floor(Math.random() * 40);
-      return Music.aggregate([{ $sample: { size: 10 } }], function (err, allMusic) {
+      return Music.aggregate([{
+        $sample: {
+          size: 10
+        }
+      }], function (err, allMusic) {
         if (err) return console.error(err);
         return allMusic;
       });
@@ -81,15 +86,22 @@ router.get('/all/:userId', (req, res) => {
       var promises = [];
       for (let i = 0; i < queryKeys.length; i++) {
         promises.push(Music.aggregate(
-          [
-            { "$match": { "categories.title": req.query[`category${i}`] }, },
-            { $sample: {size: parseInt(15/queryKeys.length)}}
+          [{
+              "$match": {
+                "categories.title": req.query[`category${i}`]
+              },
+            },
+            {
+              $sample: {
+                size: parseInt(15 / queryKeys.length)
+              }
+            }
           ],
-           (err, musics) => {
-          if (err) return console.error(err);
-          console.log("songs found with category, " + req.query[`category${i}`] + ": " + musics.length);
-          return musics;
-        }));
+          (err, musics) => {
+            if (err) return console.error(err);
+            console.log("songs found with category, " + req.query[`category${i}`] + ": " + musics.length);
+            return musics;
+          }));
       }
       return Promise.all(promises).then((values) => {
         let musics = values.flat();
@@ -176,16 +188,32 @@ router.get('/all/:userId', (req, res) => {
   })
 })
 
-router.get('/myposts/:userId', (req, res) => {
+router.get('/myposts/:userId/:lastIndex', (req, res) => {
   Music.find({
       "uploader._id": req.params.userId
     })
     .sort({
       likesCount: -1
     })
-    .exec((err, songs) => {
+    .skip(parseInt(req.params.lastIndex))
+    .limit(10)
+    .exec((err, posts) => {
       if (err) return console.error(err);
-      res.status(200).json(songs);
+      if (req.params.lastIndex <= 0) {
+        Music.count({
+          "uploader._id": req.params.userId
+        }, (err, count) => {
+          if (err) return console.error(err);
+          res.status(200).json({
+            "posts": posts,
+            "count": count
+          });
+        })
+      } else {
+        res.status(200).json({
+          "posts": posts
+        })
+      }
     })
 })
 
@@ -241,13 +269,38 @@ router.get('/likes/delete', (req, res) => {
   })
 })
 
-router.get('/likes/:userId', (req, res) => {
+router.get('/likes/:userId/:lastIndex', (req, res) => {
   User.findById(req.params.userId)
-    .populate('likedMusic')
-    .select('likedMusic')
+    .populate({path: 'likedMusic', select: '_id title description thumbnailUrl', options: { skip: parseInt(req.params.lastIndex), limit: 10, sort: { title: 1} } })
     .exec((err, data) => {
+      if (err) return console.error(err);
       if (data) {
-        res.status(200).json(data.likedMusic);
+        if (req.params.lastIndex <= 0) {
+          User.aggregate([{
+                $match: {
+                  "_id": mongoose.Types.ObjectId(req.params.userId)
+                }
+              },
+              {
+                $project: {
+                  likedMusicCount: {
+                    $size: '$likedMusic'
+                  }
+                }
+              }
+            ],
+            (err, result) => {
+              if (err) return console.error(err);
+              res.status(200).json({
+                "posts": data.likedMusic,
+                "count": result[0].likedMusicCount
+              });
+            })
+        } else {
+          res.status(200).json({
+            "posts": data.likedMusic
+          })
+        }
       } else {
         res.status(404).json({
           "message": "User does not exist"
@@ -282,7 +335,9 @@ router.get('/blocks/create', (req, res) => {
       }).then(() => {
         Music.updateOne({
           _id: req.query.musicId,
-          likesCount: {$gt: 0}
+          likesCount: {
+            $gt: 0
+          }
         }, {
           $inc: {
             likesCount: -1
@@ -336,14 +391,38 @@ router.get('/blocks/delete', (req, res) => {
   })
 })
 
-router.get('/blocks/:userId', (req, res) => {
+router.get('/blocks/:userId/:lastIndex', (req, res) => {
   User.findById(req.params.userId)
-    .populate('blockedVideos')
-    .select('blockedVideos')
+    .populate({path: 'blockedVideos', select: '_id title description thumbnailUrl', options: { skip: parseInt(req.params.lastIndex), limit: 10, sort: { title: 1} }})
     .exec((err, data) => {
       if (err) return console.error(err);
       if (data) {
-        res.status(200).json(data.blockedVideos);
+        if (req.params.lastIndex <= 0) {
+          User.aggregate([{
+                $match: {
+                  "_id": mongoose.Types.ObjectId(req.params.userId)
+                }
+              },
+              {
+                $project: {
+                  blockedVideosCount: {
+                    $size: '$blockedVideos'
+                  }
+                }
+              }
+            ],
+            (err, result) => {
+              if (err) return console.error(err);
+              res.status(200).json({
+                "posts": data.blockedVideos,
+                "count": result[0].blockedVideosCount
+              });
+            })
+        } else {
+          res.status(200).json({
+            "posts": data.blockedVideos
+          })
+        }
       } else {
         res.status(404).json({
           "message": "User does not exist"

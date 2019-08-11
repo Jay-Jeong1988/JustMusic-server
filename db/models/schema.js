@@ -34,7 +34,7 @@ let userSchema = new mongoose.Schema({
     createdAt: {type: Date, default: Date.now},
     dailyUploadsCount: {type: Number},
     blockedVideos: [{type: mongoose.Schema.Types.ObjectId,
-        ref: 'Music'}]
+        ref: 'Music', index: true}]
 })
 
 
@@ -56,8 +56,8 @@ let musicSchema = new mongoose.Schema({
     channelName: {type: String},
     likesCount: {type: Number, default: 0},
     blocksCount: {type: Number, default: 0},
-    uploadStatus: {String}
-})
+    blockedAt: {type: Date}
+}, {timestamps: true});
 
 let reportSchema = new mongoose.Schema({
     reason: {type: String},
@@ -66,6 +66,7 @@ let reportSchema = new mongoose.Schema({
     createdAt: {type: Date, default: Date.now},
 })
 
+userSchema.set('autoIndex', false);
 let User = mongoose.model('User', userSchema);
 let Category = mongoose.model("Category", categorySchema);
 let Music = mongoose.model("Music", musicSchema);
