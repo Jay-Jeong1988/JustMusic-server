@@ -41,7 +41,6 @@ let userSchema = new mongoose.Schema({
 let categorySchema = new mongoose.Schema({
     title: {type: String, lowercase: true},
     imageUrl: {type: String},
-    preference: {type: Number, default: 0},
 })
 
 let musicSchema = new mongoose.Schema({

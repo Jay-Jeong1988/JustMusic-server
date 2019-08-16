@@ -24,9 +24,9 @@ router.get('/categories/edit', (req, res) => {
     await Category.find(function (err, categories) {
       if (err) res.status(500).send(err);
       for (let category of categories) {
-        category["imageUrl"] = category["imageUrl"].replace(replaceFrom, replaceTo);
+        category["title"] = category["title"].replace(replaceFrom, replaceTo);
         category.save().then(newCategory => {
-          result.push(newCategory["imageUrl"]);
+          result.push(newCategory["title"]);
         }).catch(err => {
           result.push(err.message);
         });
@@ -271,7 +271,7 @@ router.get('/likes/delete', (req, res) => {
 
 router.get('/likes/:userId/:lastIndex', (req, res) => {
   User.findById(req.params.userId)
-    .populate({path: 'likedMusic', select: '_id title description thumbnailUrl', options: { skip: parseInt(req.params.lastIndex), limit: 10, sort: { title: 1} } })
+    .populate({path: 'likedMusic', select: '_id title description thumbnailUrl videoUrl', options: { skip: parseInt(req.params.lastIndex), limit: 10, sort: { title: 1} } })
     .exec((err, data) => {
       if (err) return console.error(err);
       if (data) {
