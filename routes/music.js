@@ -24,9 +24,9 @@ router.get('/categories/edit', (req, res) => {
     await Category.find(function (err, categories) {
       if (err) res.status(500).send(err);
       for (let category of categories) {
-        category["title"] = category["title"].replace(replaceFrom, replaceTo);
+        category["imageUrl"] = category["imageUrl"].replace(replaceFrom, replaceTo);
         category.save().then(newCategory => {
-          result.push(newCategory["title"]);
+          result.push(newCategory["imageUrl"]);
         }).catch(err => {
           result.push(err.message);
         });
@@ -558,79 +558,6 @@ router.post('/create', (req, res) => {
   })
 })
 
-router.get('/playList/:playListId/addMusic', (req, res) => {
-  Music.findById(req.query.musicId, (err, music) => {
-    if (err) return console.error(err);
-    PlayList.updateOne({
-        _id: req.params.playListId
-      }, {
-        $push: {
-          songs: music
-        }
-      }).then(() => {
-        console.log("1 song is added in a play list");
-        res.status(200).json({
-          message: "1 song is added in play list"
-        });
-      })
-      .catch((error) => {
-        console.log(error.message);
-        res.status(500).json({
-          message: error.message
-        });
-      })
-  })
-})
-
-router.post('/playLists/create', (req, res) => {
-  const playList = new PlayList({
-    title: req.body.title,
-    songs: []
-  })
-  if (req.query.musicId) {
-    Music.findById(req.query.musicId, (err, music) => {
-      playList.songs.push(music);
-      User.updateOne({
-        _id: req.query.userId
-      }, {
-        $push: {
-          playLists: playList
-        }
-      }).then(() => {
-        console.log("new play list is created with one song");
-        res.status(200).json({
-          message: "new play list is created with one song"
-        });
-      })
-    })
-  } else {
-    User.updateOne({
-      _id: req.query.userId
-    }, {
-      $push: {
-        playLists: playList
-      }
-    }).then(() => {
-      console.log("new empty play list is created");
-      res.status(200).json({
-        message: "new empty play list is created"
-      });
-    })
-  }
-})
-
-router.get('/playLists/:index', (req, res) => {
-  User.findById(req.query.userId)
-    .select('playLists')
-    .exec((err, data) => {
-      if (err) return console.error(err);
-      if (req.params.index) {
-        res.status(200).json(data.playLists[req.params.index]);
-      } else {
-        res.status(200).json(data.playLists);
-      }
-    })
-})
 
 router.get('/getAll', (req, res) => {
   Music.find(function (err, allMusic) {
