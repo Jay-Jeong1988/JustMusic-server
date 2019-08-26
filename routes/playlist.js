@@ -6,26 +6,23 @@ var User = require("../db/models/schema")["User"];
 var PlayList = require("../db/models/schema")["PlayList"];
 
 router.get('/removeMusic', (req, res) => {
-    Music.findById(req.query.musicId, (err, music) => {
-        if (err) return console.error(err);
-        PlayList.updateOne({
-            _id: req.query.playListId
-        }, {
-            $pull: {
-                songs: music
-            }
-        }).then(() => {
-            console.log("1 song is removed from play list");
-            res.status(200).json({
-                message: "1 song is removed from play list"
-            });
-        })
-        .catch((error) => {
-            console.log(error.message);
-            res.status(500).json({
-                message: error.message
-            });
-        })
+    PlayList.updateOne({
+        _id: req.query.playListId
+    }, {
+        $pull: {
+            songs: req.query.musicId
+        }
+    }).then(() => {
+        console.log("1 song is removed from play list");
+        res.status(200).json({
+            message: "1 song is removed from play list"
+        });
+    })
+    .catch((error) => {
+        console.log(error.message);
+        res.status(500).json({
+            message: error.message
+        });
     })
 })
 
