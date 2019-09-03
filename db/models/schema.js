@@ -11,11 +11,12 @@ let profileSchema = new mongoose.Schema({
     lastName: {type: String},
     birthDay: {type: Date},
     createdAt: {type: Date, default: Date.now},
-    pictureUrl: {type: String}
+    pictureUrl: {type: String},
+    bannerImageUrl: {type: String}
 })
 
 let playListSchema = new mongoose.Schema({
-    title: {type: String, maxlength: 40},
+    title: {type: String, minlength: 1, maxlength: 40},
     songs: [{type: mongoose.Schema.Types.ObjectId,
         ref: 'Music'}],
     bgUrl: {type: String}
@@ -30,12 +31,7 @@ let userSchema = new mongoose.Schema({
         ref: 'Music'}],
     playLists: [{type: mongoose.Schema.Types.ObjectId,
         ref: 'PlayList',
-        validate: {
-            validator: function(v) {
-              return false;
-            },
-            message: props => `${props.value} is not a valid phone number!`
-          }}],
+        }],
     contactInfo: {type: contactInfoSchema},
     profile: {type: profileSchema},
     createdAt: {type: Date, default: Date.now},
@@ -76,10 +72,6 @@ userSchema.set('autoIndex', false);
 let User = mongoose.model('User', userSchema);
 let Category = mongoose.model("Category", categorySchema);
 let Music = mongoose.model("Music", musicSchema);
-
-userSchema.path("playLists").validate(function (val) {
-    return false;
-  }, 'exceeds the limit of 10');
 let PlayList = mongoose.model("PlayList", playListSchema);
 
 module.exports = {User: User, Category: Category, Music: Music, PlayList: PlayList};

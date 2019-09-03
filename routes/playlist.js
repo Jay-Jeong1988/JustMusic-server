@@ -6,54 +6,64 @@ var User = require("../db/models/schema")["User"];
 var PlayList = require("../db/models/schema")["PlayList"];
 
 router.get('/removeMusic', (req, res) => {
-    PlayList.updateOne({
+    PlayList.findOneAndUpdate({
         _id: req.query.playListId
     }, {
         $pull: {
             songs: req.query.musicId
         }
-    }).then(() => {
+    }, {new: true})
+    .populate('songs')
+    .exec((err, playList) => {
+        if(err) return console.error(err);
         console.log("1 song is removed from play list");
-        res.status(200).json({
-            message: "1 song is removed from play list"
-        });
-    })
-    .catch((error) => {
-        console.log(error.message);
-        res.status(500).json({
-            message: error.message
-        });
+        res.status(200).json(playList);
     })
 })
 
 router.get('/addMusic', (req, res) => {
     Music.findById(req.query.musicId, (err, music) => {
         if (err) return console.error(err);
-        PlayList.updateOne({
-                _id: req.query.playListId
-            }, {
-                $push: {
-                    songs: music
-                }
-            }).then(() => {
-                console.log("1 song is added in play list");
-                res.status(200).json({
-                    message: "1 song is added in play list"
-                });
-            })
-            .catch((error) => {
-                console.log(error.message);
+        PlayList.findById(req.query.playListId)
+        .populate({
+            path: 'songs',
+            match: { _id: mongoose.Types.ObjectId(req.query.musicId) }
+        })
+        .exec((err, data) => {
+            if (err) return console.error(err);
+            if (data.songs[0]){
+                console.log('song already exists');
                 res.status(500).json({
-                    message: error.message
-                });
-            })
+                    message: "song already exists"
+                })
+            }else {
+                PlayList.updateOne({
+                    _id: req.query.playListId
+                }, {
+                    $push: {
+                        songs: music
+                    }
+                }).then(() => {
+                    console.log("1 song is added in play list");
+                    res.status(200).json({
+                        message: "1 song is added in play list"
+                    });
+                })
+                .catch((error) => {
+                    console.log(error.message);
+                    res.status(500).json({
+                        message: error.message
+                    });
+                })
+            }
+        })
     })
 })
 
 router.post('/create', (req, res) => {
     const bgUrl = req.body.bgUrl || "https://ik.imagekit.io/kitkitkitit/tr:q-100,w-1000/default_play_list_bg.jpg";
     const playList = new PlayList({
-        title: req.body.title,
+        title: req.body.title || "unnamed",
         songs: [],
         bgUrl: bgUrl
     })
@@ -83,6 +93,7 @@ router.post('/create', (req, res) => {
                 }
             }).then(() => {
                 console.log("new empty play list is created");
+                console.log(playList);
             })
             res.status(200).json({
                 message: "new empty play list is created",

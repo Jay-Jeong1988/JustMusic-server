@@ -28,25 +28,25 @@ router.get('/edit', (req, res)=>{
   }
 })
 
-router.post('/login', function(req, res) {
-  User.findOne({email: req.body.accountId}, function (err, user) {
-    if (err) return console.error(err);
-    if (user.password === req.body.password) {
-      res.status(200).json({
-        result: {
-          msg: "successfully logged in",
-          user: user
-        }
-      })
-    } else {
-      res.status(401).json({
-        result: {
-          msg: "invalid password"
-        }
-      })
-    }
-  })
-})
+// router.post('/login', function(req, res) {
+//   User.findOne({email: req.body.accountId}, function (err, user) {
+//     if (err) return console.error(err);
+//     if (user.password === req.body.password) {
+//       res.status(200).json({
+//         result: {
+//           msg: "successfully logged in",
+//           user: user
+//         }
+//       })
+//     } else {
+//       res.status(401).json({
+//         result: {
+//           msg: "invalid password"
+//         }
+//       })
+//     }
+//   })
+// })
 
 router.post('/signup', (req, res) => {
   const phoneNumber = req.body.phoneNumber.slice(1).replace(/\s/g, '');
@@ -54,9 +54,10 @@ router.post('/signup', (req, res) => {
   const accountId = req.body.accountId;
   const password = req.body.password;
   const passwordConfirmation = req.body.passwordConfirmation;
-  const nickname = req.body.nickname || "user" + "00" + _mixPhoneNumber;
+  const nickname = req.body.nickname || "user" + "00" + _mixPhoneNumber(phoneNumber);
   const newUser = new User({ 
     nickname: nickname,
+    accountId: accountId,
     contactInfo: {phoneNumber: phoneNumber},
     profile: {}
   });
@@ -74,12 +75,13 @@ router.post('/signup', (req, res) => {
           })
       })
     }else{
+      console.log("existing user: " + user)
       res.status(200).json(user);
     }
   })
 
   function _mixPhoneNumber(number) {
-    var a = this.split(""),
+    var a = number.split(""),
         n = a.length;
 
     for(var i = n - 1; i > 0; i--) {
@@ -114,7 +116,37 @@ router.get('/authenticate', (req, res) => {
   }
 })
 
+router.get('/:userId/updateProfile', (req, res) => {
+  User.updateOne({_id: req.params.userId}, {
+    $set: {
+      "profile.pictureUrl": req.query.pictureUrl
+    }
+  }).then(() => {
+    console.log("profile picture is updated: " + req.query.pictureUrl)
+    res.status(200).send("sucessfully updated profile image");
+  }).catch(error => {
+    console.log(error.message);
+    res.status(500).json({
+      error: error.message
+    })
+  })
+})
 
+router.get('/:userId/updateBanner', (req, res) => {
+  User.updateOne({_id: req.params.userId}, {
+    $set: {
+      "profile.bannerImageUrl": req.query.pictureUrl
+    }
+  }).then(() => {
+    console.log("Banner picture is updated: " + req.query.pictureUrl)
+    res.status(200).send("sucessfully updated banner image");
+  }).catch(error => {
+    console.log(error.message);
+    res.status(500).json({
+      error: error.message
+    })
+  })
+})
 
 
 
