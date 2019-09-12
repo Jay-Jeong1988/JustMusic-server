@@ -67,7 +67,10 @@ router.post('/signup', (req, res) => {
     if (user == null) {
       newUser.save().then( newUser => {
         console.log("successfully created user: \n" + newUser);
-        res.status(200).json(newUser);
+        res.status(200).json({
+          "user": newUser,
+          "isNew": true
+        });
       }).catch(error => {
         console.log(error.message);
           res.status(500).json({
@@ -76,7 +79,10 @@ router.post('/signup', (req, res) => {
       })
     }else{
       console.log("existing user: " + user)
-      res.status(200).json(user);
+      res.status(200).json({
+        "user": user,
+        "isNew": false
+      });
     }
   })
 
@@ -148,63 +154,16 @@ router.get('/:userId/updateBanner', (req, res) => {
   })
 })
 
-
-
-
-
-  // if(password === passwordConfirmation) {
-    
-  //   user.save().then( user => {
-  //     console.log('successfully created a new user: \n' + user);
-  //     res.status(200).json({
-  //       msg: "successfully created a new user: " + user.nick_name,
-  //       user: user
-  //     })
-  //   }).catch(error => {
-  //     res.status(500).json({
-  //       msg: error.message
-  //     })
-  //     console.log(error);
-  //   })
-  // }else {
-  //   res.status(422).json({
-  //     msg: "passwords do not match"
-  //   })
-  // }
-// });
-
-// router.get('/:email', (req, res) => {
-//   User.findOne({email: req.params.email}, (err, user) => {
-//     if(err) return console.error(err)
-//     if (user !== null) {
-//       console.log("email exists already")
-//       res.status(500).json({status: "NA", msg: "Email exists already"})
-//     }else {
-//       console.log("valid username")
-//       res.status(200).json({status: "OK"})
-//     }
-//   })
-// })
-
-// router.post('/update', (req, res) => {
-//   User.findOne({email: req.body.email}, (err, user) => {
-//     if(err) return console.error(err);
-//     user.nick_name = req.body.nick_name;
-//     user.save().then(instance => {
-//       console.log("user has been updated");
-//       res.status(200).json({
-//           status: "OK",
-//           msg: "user has been updated",
-//           user: instance
-//       });
-//     }).catch(error => {
-//       console.log("cannot update user")
-//       res.status(500).json({
-//           status: "NA",
-//           msg: error.message
-//       })
-//     })
-//   })
-// })
+router.get('/:userId/updateNickname', (req, res) => {
+  User.findOne({_id: req.params.userId}, (err, user) => {
+    user.nickname = req.query.nickname;
+    user.save().then( updatedUser => {
+      console.log("user nickname updated");
+      res.status(200).send(updatedUser);
+    }).catch(err => {
+      res.status(500).send(err.message);
+    });
+  })
+})
 
 module.exports = router;

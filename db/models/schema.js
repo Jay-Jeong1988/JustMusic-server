@@ -25,7 +25,7 @@ let playListSchema = new mongoose.Schema({
 let userSchema = new mongoose.Schema({
     accountId: {type: String},
     password: {type: String},
-    nickname: {type: String},
+    nickname: {type: String, minlength: 1, maxlength: 20},
     followers: {type: Number, default: 0},
     likedMusic: [{type: mongoose.Schema.Types.ObjectId,
         ref: 'Music'}],
