@@ -566,4 +566,95 @@ router.get('/getAll', (req, res) => {
   });
 })
 
+const request = require('request');
+router.get('/autoSaveMusic/:vId', (req, res) => {
+  request(`https://www.googleapis.com/youtube/v3/videos?key=AIzaSyAF5qHXjkbFpXKvM9deQG-42YRZScrbXek&part=snippet&id=${req.params.vId}`,
+    {json: true},
+    (err, rest, body) => {
+      if (err) { return console.log(err); }
+      const snippet = body.items[0].snippet;
+
+      const title = snippet["title"];
+      const videoUrl = "https://www.youtube.com/watch?v=" + req.params.vId;
+      const description = snippet["description"];
+      const thumbnailUrl = snippet['thumbnails']['maxres'] != null ? snippet['thumbnails']['maxres']['url'] : snippet['thumbnails']['high']['url'];
+      const userNote = "";
+      const categoryTitles = req.query.categories;
+      const publishedAt = snippet["publishedAt"].split("T")[0];
+      const channelName = snippet["channelTitle"];
+      const userId = req.body.userId;
+
+      Music.findOne({
+        "videoUrl": videoUrl
+      }, (err, music) => {
+        if (err) return console.error(err);
+        if (music == null) {
+          const newMusic = new Music({
+            title: title,
+            description: description,
+            videoUrl: videoUrl,
+            channelName: channelName,
+            userNote: userNote,
+            publishedAt: publishedAt,
+            thumbnailUrl: thumbnailUrl,
+            categories: [],
+            uploader: {},
+            uploadStatus: "pending"
+          })
+
+          newMusic.save().then(newMusic => {
+            console.log("successfully saved music: \n" + newMusic);
+
+            categoryTitles.forEach(categoryTitle => {
+              Category.findOne({
+                title: categoryTitle
+              }, (err, category) => {
+                newMusic.categories.push(category);
+                Music.updateOne({
+                  _id: newMusic._id
+                }, {
+                  $push: {
+                    categories: category
+                  }
+                }).then(updatedMusic => {
+                  console.log("pushed category, " + category.title)
+                });
+              })
+            });
+
+            User.findById(userId, (err, user) => {
+              if (err) return console.error(err);
+              if (user != null) {
+                Music.updateOne({
+                  _id: newMusic._id
+                }, {
+                  $set: {
+                    uploader: user
+                  }
+                }).then(updatedMusic => {
+                  console.log("user, " + user.nickname + " is added.");
+                });
+              } else {
+                console.log("music saved by unknown user");
+              }
+            })
+            res.status(200).json({
+              msg: "successfully saved a new music: " + newMusic.title,
+            })
+          }).catch(error => {
+            console.log(error.message);
+            res.status(500).json({
+              error: error.message
+            })
+          })
+        } else {
+          console.log("Music already exists");
+          res.status(500).json({
+            error: "Music already exists"
+          })
+        }
+      })
+    })
+})
+
 module.exports = router;
