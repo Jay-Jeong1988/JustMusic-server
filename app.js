@@ -20,6 +20,8 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+app.get('/favicon.ico', (req, res) => res.status(204));
+
 app.use('/users', usersRouter);
 app.use('/music', musicRouter);
 app.use('/playlists', playListsRouter);
