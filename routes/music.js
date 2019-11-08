@@ -582,7 +582,7 @@ router.get('/autoSaveMusic/:vId', (req, res) => {
       const categoryTitles = req.query.categories;
       const publishedAt = snippet["publishedAt"].split("T")[0];
       const channelName = snippet["channelTitle"];
-      const userId = req.body.userId;
+      const userId = "5dc4b0c8d2dab01554b60770";
 
       Music.findOne({
         "videoUrl": videoUrl
