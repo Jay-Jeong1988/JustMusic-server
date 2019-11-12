@@ -657,4 +657,16 @@ router.get('/autoSaveMusic/:vId', (req, res) => {
     })
 })
 
+router.get('/searchResult/:lastIndex', (req, res) => {
+  let keyword = req.query.keyword;
+  Music.find({ "title": new RegExp(keyword, "i") })
+  .skip(parseInt(req.params.lastIndex)).limit(25)
+    .exec((err, data) => {
+      if (err) return console.error(err);
+      if (data) {
+            res.status(200).json(data);
+        }
+    })
+})
+
 module.exports = router;
