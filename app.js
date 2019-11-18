@@ -8,6 +8,7 @@ var db = require("./db/db");
 var musicRouter = require('./routes/music');
 var usersRouter = require('./routes/users');
 var playListsRouter = require('./routes/playlist');
+var updateRouter = require('./routes/update');
 
 var app = express();
 
@@ -25,6 +26,7 @@ app.get('/favicon.ico', (req, res) => res.status(204));
 app.use('/users', usersRouter);
 app.use('/music', musicRouter);
 app.use('/playlists', playListsRouter);
+app.use('/update', updateRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
