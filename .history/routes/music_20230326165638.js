@@ -568,7 +568,7 @@ router.get('/getAll', (req, res) => {
 
 const request = require('request');
 router.get('/autoSaveMusic/:vId', (req, res) => {
-  request(`https://www.googleapis.com/youtube/v3/videos?key=${API_KEY}&part=snippet&id=${req.params.vId}`,
+  request(`https://www.googleapis.com/youtube/v3/videos?${key=API_KEY}&part=snippet&id=${req.params.vId}`,
     {json: true},
     (err, rest, body) => {
       if (err) { return console.log(err); }
